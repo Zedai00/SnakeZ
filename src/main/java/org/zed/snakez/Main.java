@@ -24,7 +24,7 @@ public class Main {
         int foodY = ThreadLocalRandom.current().nextInt(1, termWidth);
         terminal.puts(Capability.cursor_address, foodX, foodY);
         terminal.flush();
-        System.out.printf("O");
+        System.out.printf("@");
         new Movement(terminal, snake).start();
         snake.bits.getFirst().currX = termHeight / 2;
         snake.bits.getFirst().currY = termWidth / 2;
@@ -55,7 +55,7 @@ public class Main {
                 }
                 terminal.puts(Capability.cursor_address, bit.currX, bit.currY);
                 terminal.flush();
-                System.out.print("▮");
+                System.out.print("O");
                 bit = snake.bits.getFirst();
                 if (bit.currX == foodX && bit.currY == foodY) {
                     foodX = ThreadLocalRandom.current().nextInt(1, termHeight);
@@ -63,7 +63,7 @@ public class Main {
                     terminal.puts(Capability.save_cursor);
                     terminal.puts(Capability.cursor_address, foodX, foodY);
                     terminal.flush();
-                    System.out.print("o");
+                    System.out.print("@");
                     terminal.puts(Capability.restore_cursor);
                     snake.addBit();
                     sleepSnake -= 5;

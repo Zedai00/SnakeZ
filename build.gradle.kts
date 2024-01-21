@@ -1,6 +1,5 @@
 plugins {
     id("java")
-    id("application")
 }
 
 group = "org.zed.snakez"
@@ -8,9 +7,6 @@ version = "1.0-SNAPSHOT"
 
 
 
-application {
-    mainClass.set("org.zed.snakez.Main")
-}
 
 dependencies {
     implementation("org.jline:jline:3.25.0")
