@@ -10,6 +10,15 @@ class Game {
   private Snake snake;
   private Food food;
   private int score = 0;
+  private int speed = 150;
+
+  public int getSpeed() {
+    return speed;
+  }
+
+  public void updateSpeed() {
+    this.speed++;
+  }
 
   public int getScore() {
     return score;
@@ -46,7 +55,7 @@ class Game {
       snake.checkCollision(food, terminal);
       renderer.renderGame(snake, food);
       try {
-        Thread.sleep(snake.speed);
+        Thread.sleep(this.getSpeed());
       } catch (final InterruptedException e) {
         e.printStackTrace();
       }

@@ -28,7 +28,7 @@ class Renderer {
   public void renderGame(Snake snake, Food food) {
     drawBorder();
     if (snake.foodCheck(food, terminal)) {
-      snake.speed--;
+      game.updateSpeed();
     }
     renderFood(food.getX(), food.getY());
     renderSnake(snake);

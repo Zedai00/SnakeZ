@@ -9,7 +9,6 @@ class Snake {
     ArrayList<Bit> bits;
     private Direction direction;
     private Game game;
-    public int speed = 150;
 
     public Snake(final Terminal terminal, Game game) {
         this.game = game;
