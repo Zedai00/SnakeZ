@@ -26,6 +26,7 @@ class Game {
   Game() {
     try {
       terminal = TerminalBuilder.builder().system(true).dumb(false).build();
+      terminal.puts(Capability.clear_screen);
       renderer = new Renderer(terminal);
       snake = new Snake(terminal);
       food = new Food(terminal);
@@ -43,7 +44,6 @@ class Game {
   }
 
   private void initialize() {
-    terminal.puts(Capability.clear_screen);
     terminal.enterRawMode();
     terminal.puts(Capability.cursor_invisible);
     renderer.renderFood(food.getX(), food.getY());
@@ -79,20 +79,20 @@ class Renderer {
 
   private void renderSnake(Snake snake) {
     for (Bit bit : snake.bits) {
-      terminal.puts(Capability.cursor_address, bit.prevX, bit.prevY);
-      System.out.print("A");
-      terminal.flush();
       terminal.puts(Capability.cursor_address, bit.currX, bit.currY);
-      System.out.print("O");
       terminal.flush();
+      System.out.print("O");
+      terminal.puts(Capability.cursor_address, bit.prevX, bit.prevY);
+      terminal.flush();
+      System.out.print(" ");
     }
   }
 
   public void renderFood(int x, int y) {
     // terminal.puts(Capability.save_cursor);
     terminal.puts(Capability.cursor_address, x, y);
-    System.out.print("@");
     terminal.flush();
+    System.out.print("@");
     // terminal.puts(Capability.restore_cursor);
   }
 }
@@ -141,7 +141,9 @@ class Snake {
 
   public Snake(Terminal terminal) {
     bits = new ArrayList<>();
-    bits.add(new Bit(terminal.getHeight() / 2, terminal.getWidth() / 2));
+    int height = terminal.getHeight();
+    int width = terminal.getWidth();
+    bits.add(new Bit(height / 2, width / 2));
     direction = Direction.values()[ThreadLocalRandom.current().nextInt(
         Direction.values().length)];
   }
@@ -181,10 +183,10 @@ class Snake {
         bit.prevX = bit.currX;
         bit.prevY = bit.currY;
         switch (this.direction) {
-          case UP -> bit.currX--;
-          case DOWN -> bit.currX++;
-          case LEFT -> bit.currY--;
-          case RIGHT -> bit.currY++;
+          case UP -> --bit.currX;
+          case DOWN -> ++bit.currX;
+          case LEFT -> --bit.currY;
+          case RIGHT -> ++bit.currY;
         }
 
       } else {
@@ -206,6 +208,7 @@ class Snake {
     } else if (key == 68 || key == 100) {
       this.direction = Direction.RIGHT;
     }
+
   }
 }
 
