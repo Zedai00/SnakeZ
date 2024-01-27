@@ -3,150 +3,233 @@ package org.zed.snakez;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.InfoCmp;
 import org.jline.utils.InfoCmp.Capability;
 import org.jline.utils.NonBlockingReader;
 
 public class Main {
-
-    public static void main(String[] args) throws IOException {
-        Terminal terminal = TerminalBuilder.builder().system(true).dumb(false).build();
-        terminal.puts(Capability.clear_screen);
-        terminal.enterRawMode();
-        int termWidth = terminal.getWidth();
-        int termHeight = terminal.getHeight();
-        Snake snake = new Snake(termHeight, termWidth);
-        terminal.puts(Capability.cursor_invisible);
-        int foodX = ThreadLocalRandom.current().nextInt(1, termHeight);
-        int foodY = ThreadLocalRandom.current().nextInt(1, termWidth);
-        terminal.puts(Capability.cursor_address, foodX, foodY);
-        terminal.flush();
-        System.out.printf("@");
-        new Movement(terminal, snake).start();
-        snake.bits.getFirst().currX = termHeight / 2;
-        snake.bits.getFirst().currY = termWidth / 2;
-        int sleepBit = 0;
-        int sleepSnake = 150;
-        while (true) {
-            for (int i = 0; i < snake.bits.size(); i++) {
-                Bit bit = snake.bits.get(i);
-                if (i == 0) {
-                    bit.prevX = bit.currX;
-                    bit.prevY = bit.currY;
-                    switch (snake.move) {
-                        case UP -> bit.currX--;
-                        case DOWN -> bit.currX++;
-                        case LEFT -> bit.currY--;
-                        case RIGHT -> bit.currY++;
-                    }
-
-                } else {
-                    bit.prevX = bit.currX;
-                    bit.prevY = bit.currY;
-                    bit.currY = snake.bits.get(i - 1).prevY;
-                    bit.currX = snake.bits.get(i - 1).prevX;
-                }
-                if ((bit.currX >= termHeight || bit.currX <= 0) || (bit.currY >= termWidth || bit.currY <= 0)) {
-                    System.out.println("\033[?25h");
-                    System.exit(0);
-                }
-                terminal.puts(Capability.cursor_address, bit.currX, bit.currY);
-                terminal.flush();
-                System.out.print("O");
-                bit = snake.bits.getFirst();
-                if (bit.currX == foodX && bit.currY == foodY) {
-                    foodX = ThreadLocalRandom.current().nextInt(1, termHeight);
-                    foodY = ThreadLocalRandom.current().nextInt(1, termWidth);
-                    terminal.puts(Capability.save_cursor);
-                    terminal.puts(Capability.cursor_address, foodX, foodY);
-                    terminal.flush();
-                    System.out.print("@");
-                    terminal.puts(Capability.restore_cursor);
-                    snake.addBit();
-                    sleepSnake -= 5;
-                }
-                try {
-                    Thread.sleep(sleepBit);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            try {
-                Thread.sleep(sleepSnake);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            Bit bit = snake.bits.getLast();
-            terminal.puts(InfoCmp.Capability.cursor_address, bit.currX, bit.currY);
-            terminal.flush();
-            System.out.print(" ");
-        }
-    }
+  public static void main(String[] args) {
+    Game game = new Game();
+    Thread inputHandeler = new Thread(new InputHandeler(game.getTerminal(), game.getSnake()));
+    inputHandeler.start();
+    game.start();
+  }
 }
 
-class Movement extends Thread {
+class Game {
+  private Terminal terminal;
+  private Renderer renderer;
+  private Snake snake;
+  private Food food;
 
-    Terminal terminal;
-    Snake snake;
-
-    Movement(Terminal terminal, Snake snake) {
-        this.terminal = terminal;
-        this.snake = snake;
+  Game() {
+    try {
+      terminal = TerminalBuilder.builder().system(true).dumb(false).build();
+      terminal.puts(Capability.clear_screen);
+      renderer = new Renderer(terminal);
+      snake = new Snake(terminal);
+      food = new Food(terminal);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
+  }
 
-    void move(int k) {
-        if (k == 87 || k == 119) {
-            snake.move = Move.UP;
-        } else if (k == 65 || k == 97) {
-            snake.move = Move.LEFT;
-        } else if (k == 83 || k == 115) {
-            snake.move = Move.DOWN;
-        } else if (k == 68 || k == 100) {
-            snake.move = Move.RIGHT;
-        }
-    }
+  public Snake getSnake() {
+    return this.snake;
+  }
 
-    public void run() {
-        NonBlockingReader keyReader;
-        while (true) {
-            keyReader = this.terminal.reader();
-            try {
-                int k = keyReader.read();
-                move(k);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
+  public Terminal getTerminal() {
+    return this.terminal;
+  }
+
+  private void initialize() {
+    terminal.enterRawMode();
+    terminal.puts(Capability.cursor_invisible);
+    renderer.renderFood(food.getX(), food.getY());
+  }
+
+  public void start() {
+    initialize();
+    while (true) {
+      snake.move();
+      snake.checkCollision(food, terminal);
+      renderer.renderGame(snake, food);
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
+  }
 }
 
-enum Move {
-    UP, DOWN, LEFT, RIGHT;
+class Renderer {
+  private Terminal terminal;
+
+  public Renderer(Terminal terminal) {
+    this.terminal = terminal;
+  }
+
+  public void renderGame(Snake snake, Food food) {
+    renderSnake(snake);
+    if (snake.foodCheck(food, terminal))
+      renderFood(food.getX(), food.getY());
+  }
+
+  private void renderSnake(Snake snake) {
+    for (Bit bit : snake.bits) {
+      terminal.puts(Capability.cursor_address, bit.currX, bit.currY);
+      terminal.flush();
+      System.out.print("O");
+      terminal.puts(Capability.cursor_address, bit.prevX, bit.prevY);
+      terminal.flush();
+      System.out.print(" ");
+    }
+  }
+
+  public void renderFood(int x, int y) {
+    // terminal.puts(Capability.save_cursor);
+    terminal.puts(Capability.cursor_address, x, y);
+    terminal.flush();
+    System.out.print("@");
+    // terminal.puts(Capability.restore_cursor);
+  }
+}
+
+class InputHandeler implements Runnable {
+  private Terminal terminal;
+  private Snake snake;
+
+  public InputHandeler(Terminal terminal, Snake snake) {
+    this.terminal = terminal;
+    this.snake = snake;
+  }
+
+  @Override
+  public void run() {
+    NonBlockingReader keyReader = terminal.reader();
+    try {
+      while (true) {
+        snake.setDirection(keyReader.read());
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+
+enum Direction {
+  UP, DOWN, LEFT, RIGHT
 }
 
 class Bit {
-    int currX;
-    int currY;
-    int prevX;
-    int prevY;
+  int currX;
+  int currY;
+  int prevX;
+  int prevY;
 
+  public Bit(int x, int y) {
+    this.currX = x;
+    this.currY = y;
+  }
 }
 
 class Snake {
-    ArrayList<Bit> bits = new ArrayList<>();
-    Move move;
+  ArrayList<Bit> bits;
+  private Direction direction;
 
-    Snake(int termHeight, int termWidth) {
-        move = Move.values()[ThreadLocalRandom.current().nextInt(Move.values().length)];
-        Bit bit = new Bit();
-        bits.add(bit);
+  public Snake(Terminal terminal) {
+    bits = new ArrayList<>();
+    int height = terminal.getHeight();
+    int width = terminal.getWidth();
+    bits.add(new Bit(height / 2, width / 2));
+    direction = Direction.values()[ThreadLocalRandom.current().nextInt(
+        Direction.values().length)];
+  }
+
+  public void checkCollision(Food food, Terminal terminal) {
+    Bit bit = bits.getFirst();
+    if ((bit.currX >= terminal.getHeight() || bit.currX <= 0) ||
+        (bit.currY >= terminal.getWidth() || bit.currY <= 0)) {
+      terminal.puts(Capability.cursor_visible);
+      System.out.print("Game Over");
+      System.exit(0);
+    }
+  }
+
+  public boolean foodCheck(Food food, Terminal terminal) {
+    if (bits.getFirst().currX == food.getX() &&
+        bits.getFirst().currY == food.getY()) {
+      addBit();
+      respawnFood(food, terminal);
+      return true;
+    } else
+      return false;
+  }
+
+  private void respawnFood(Food food, Terminal terminal) {
+    food.spawn(terminal.getHeight(), terminal.getWidth());
+  }
+
+  private void addBit() {
+    bits.add(new Bit(bits.getLast().prevX, bits.getLast().prevY));
+  }
+
+  public void move() {
+    for (int i = 0; i < this.bits.size(); i++) {
+      Bit bit = this.bits.get(i);
+      if (i == 0) {
+        bit.prevX = bit.currX;
+        bit.prevY = bit.currY;
+        switch (this.direction) {
+          case UP -> --bit.currX;
+          case DOWN -> ++bit.currX;
+          case LEFT -> --bit.currY;
+          case RIGHT -> ++bit.currY;
+        }
+
+      } else {
+        bit.prevX = bit.currX;
+        bit.prevY = bit.currY;
+        bit.currY = this.bits.get(i - 1).prevY;
+        bit.currX = this.bits.get(i - 1).prevX;
+      }
+    }
+  }
+
+  void setDirection(int key) {
+    if (key == 87 || key == 119) {
+      this.direction = Direction.UP;
+    } else if (key == 65 || key == 97) {
+      this.direction = Direction.LEFT;
+    } else if (key == 83 || key == 115) {
+      this.direction = Direction.DOWN;
+    } else if (key == 68 || key == 100) {
+      this.direction = Direction.RIGHT;
     }
 
-    void addBit() {
-        Bit bit = new Bit();
-        bits.add(bit);
-    }
+  }
+}
+
+class Food {
+  int x;
+  int y;
+
+  public Food(Terminal terminal) {
+    spawn(terminal.getHeight(), terminal.getWidth());
+  }
+
+  public void spawn(int maxX, int maxY) {
+    x = ThreadLocalRandom.current().nextInt(1, maxX);
+    y = ThreadLocalRandom.current().nextInt(1, maxY);
+  }
+
+  public int getX() {
+    return x;
+  }
+
+  public int getY() {
+    return y;
+  }
 }
