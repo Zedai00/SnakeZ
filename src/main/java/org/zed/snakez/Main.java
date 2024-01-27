@@ -44,6 +44,7 @@ class Game {
 
   private void initialize() {
     terminal.puts(Capability.clear_screen);
+    terminal.enterRawMode();
     terminal.puts(Capability.cursor_invisible);
     renderer.renderFood(food.getX(), food.getY());
   }
@@ -55,7 +56,7 @@ class Game {
       snake.checkCollision(food, terminal);
       renderer.renderGame(snake, food);
       try {
-        Thread.sleep(100); // Adjust sleep time based on your desired game speed
+        Thread.sleep(100);
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -72,30 +73,26 @@ class Renderer {
 
   public void renderGame(Snake snake, Food food) {
     renderSnake(snake);
-    renderFood(food.getX(), food.getY());
+    if (snake.foodCheck(food, terminal))
+      renderFood(food.getX(), food.getY());
   }
 
   private void renderSnake(Snake snake) {
     for (Bit bit : snake.bits) {
       terminal.puts(Capability.cursor_address, bit.prevX, bit.prevY);
-      System.out.print("b");
+      System.out.print("A");
       terminal.flush();
-    }
-
-    for (Bit bit : snake.bits) {
       terminal.puts(Capability.cursor_address, bit.currX, bit.currY);
       System.out.print("O");
       terminal.flush();
     }
-
-    terminal.flush();
   }
 
   public void renderFood(int x, int y) {
     // terminal.puts(Capability.save_cursor);
     terminal.puts(Capability.cursor_address, x, y);
-    terminal.flush();
     System.out.print("@");
+    terminal.flush();
     // terminal.puts(Capability.restore_cursor);
   }
 }
@@ -144,34 +141,33 @@ class Snake {
 
   public Snake(Terminal terminal) {
     bits = new ArrayList<>();
-    bits.add(new Bit(terminal.getWidth() / 2, terminal.getHeight() / 2));
+    bits.add(new Bit(terminal.getHeight() / 2, terminal.getWidth() / 2));
     direction = Direction.values()[ThreadLocalRandom.current().nextInt(
         Direction.values().length)];
   }
 
   public void checkCollision(Food food, Terminal terminal) {
-    foodCheck(food, terminal);
-    wallCheck(terminal);
-  }
-
-  private void wallCheck(Terminal terminal) {
     Bit bit = bits.getFirst();
-    if ((bit.currX >= terminal.getWidth() || bit.currX <= 0) ||
-        (bit.currY >= terminal.getHeight() || bit.currY <= 0)) {
+    if ((bit.currX >= terminal.getHeight() || bit.currX <= 0) ||
+        (bit.currY >= terminal.getWidth() || bit.currY <= 0)) {
       terminal.puts(Capability.cursor_visible);
+      System.out.print("Game Over");
       System.exit(0);
     }
   }
 
-  private void foodCheck(Food food, Terminal terminal) {
-    if (bits.getFirst().currX == food.x && bits.getFirst().currY == food.y) {
+  public boolean foodCheck(Food food, Terminal terminal) {
+    if (bits.getFirst().currX == food.getX() &&
+        bits.getFirst().currY == food.getY()) {
       addBit();
       respawnFood(food, terminal);
-    }
+      return true;
+    } else
+      return false;
   }
 
   private void respawnFood(Food food, Terminal terminal) {
-    food.spawn(terminal.getWidth(), terminal.getHeight());
+    food.spawn(terminal.getHeight(), terminal.getWidth());
   }
 
   private void addBit() {
@@ -218,7 +214,7 @@ class Food {
   int y;
 
   public Food(Terminal terminal) {
-    spawn(terminal.getWidth(), terminal.getHeight());
+    spawn(terminal.getHeight(), terminal.getWidth());
   }
 
   public void spawn(int maxX, int maxY) {
