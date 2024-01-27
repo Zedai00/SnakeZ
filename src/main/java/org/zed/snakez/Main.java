@@ -89,11 +89,9 @@ class Renderer {
   }
 
   public void renderFood(int x, int y) {
-    // terminal.puts(Capability.save_cursor);
     terminal.puts(Capability.cursor_address, x, y);
     terminal.flush();
     System.out.print("@");
-    // terminal.puts(Capability.restore_cursor);
   }
 }
 
