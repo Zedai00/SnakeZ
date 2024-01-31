@@ -15,6 +15,7 @@ dependencies {
 
 tasks {
     jar {
+    dependsOn("copyDependencies")
         manifest.attributes["Main-Class"] = "org.zed.snakez.Main"
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         from({
@@ -22,6 +23,12 @@ tasks {
         })
     }
 }
+
+tasks.register<Copy>("copyDependencies") { 
+    from(configurations.runtimeClasspath)
+    into(layout.buildDirectory.dir("runtimeClasspath"))
+}
+
 
 repositories {
     mavenCentral()

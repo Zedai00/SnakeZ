@@ -1,8 +1,12 @@
 package org.zed.snakez;
 
+import java.io.Reader;
+
+import org.jline.reader.Reference;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp.Capability;
+import org.jline.utils.NonBlockingReader;
 
 class Game {
   private Terminal terminal;
@@ -50,6 +54,23 @@ class Game {
 
   public void start() {
     initialize();
+    renderer.renderStartMenu();
+    try {
+      while (true) {
+        final NonBlockingReader keyReader = terminal.reader();
+        if (keyReader.read() == 13) {
+          break;
+        }
+      }
+    } catch (Exception e) {
+      // TODO: handle exception
+    }
+    terminal.puts(Capability.clear_screen);
+    renderer.renderFood(food.getX(), food.getY(), food.getColor());
+    runLoop();
+  }
+
+  private void runLoop() {
     while (true) {
       snake.move();
       snake.checkCollision(food, terminal);
@@ -65,6 +86,5 @@ class Game {
   private void initialize() {
     terminal.enterRawMode();
     terminal.puts(Capability.cursor_invisible);
-    renderer.renderFood(food.getX(), food.getY());
   }
 }

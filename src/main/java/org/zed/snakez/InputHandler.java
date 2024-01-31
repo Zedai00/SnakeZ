@@ -1,9 +1,8 @@
 package org.zed.snakez;
 
+import java.io.IOException;
 import org.jline.terminal.Terminal;
 import org.jline.utils.NonBlockingReader;
-
-import java.io.IOException;
 
 class InputHandler implements Runnable {
     private final Terminal terminal;
