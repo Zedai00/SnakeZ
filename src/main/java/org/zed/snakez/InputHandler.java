@@ -6,11 +6,11 @@ import org.jline.utils.NonBlockingReader;
 
 class InputHandler implements Runnable {
     private final Terminal terminal;
-    private final Snake snake;
+    private final Game game;
 
-    public InputHandler(final Terminal terminal, final Snake snake) {
-        this.terminal = terminal;
-        this.snake = snake;
+    public InputHandler(Game game) {
+        this.game = game;
+        this.terminal = game.getTerminal();
     }
 
     @Override
@@ -18,7 +18,7 @@ class InputHandler implements Runnable {
         final NonBlockingReader keyReader = terminal.reader();
         try {
             while (true) {
-                snake.setDirection(keyReader.read());
+                game.handleInput(keyReader.read());
             }
         } catch (final IOException e) {
             e.printStackTrace();

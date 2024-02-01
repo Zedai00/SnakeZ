@@ -1,18 +1,14 @@
 package org.zed.snakez;
 
-import org.jline.jansi.Ansi.Color;
-
 class Bit {
     private int currX;
     private int currY;
     private int prevX;
     private int prevY;
-    public Color color;
 
-    public Bit(final int x, final int y) {
+    public Bit(final int x, final int y, Utils util) {
         this.currX = x;
         this.currY = y;
-        this.color = Utils.getRandomColor();
     }
 
     public int getCurrX() {
