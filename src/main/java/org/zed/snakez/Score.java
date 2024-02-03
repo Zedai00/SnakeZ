@@ -1,9 +1,10 @@
 package org.zed.snakez;
 
+import java.util.ArrayList;
 import org.jline.jansi.Ansi.Color;
 
 public class Score {
-  private Color bg;
+  private ArrayList<Color> theme;
   private int score;
 
   public int getScore() {
@@ -16,10 +17,10 @@ public class Score {
 
   Score(Theme theme) {
     this.score = 0;
-    bg = theme.getColor();
+    this.theme = theme.getTheme();
   }
 
-  public Color getBg() {
-    return bg;
+  public ArrayList<Color> getTheme() {
+    return theme;
   }
 }
