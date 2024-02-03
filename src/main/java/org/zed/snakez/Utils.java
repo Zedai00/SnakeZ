@@ -17,7 +17,8 @@ public class Utils {
     while (true) {
       Color c = colors[ThreadLocalRandom.current().nextInt(colors.length)];
       if (c != backgroundColor && c != previousColor)
-        return c;
+        previousColor = c;
+      return c;
     }
   }
 

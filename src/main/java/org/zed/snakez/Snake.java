@@ -12,15 +12,18 @@ class Snake {
     private Score score;
     private Utils util;
     private Color color;
+    private Control control;
 
     public Color getColor() {
         return color;
     }
 
-    public Snake(final Terminal terminal, Game game, Utils util, Score score) {
+    public Snake(final Terminal terminal, Game game, Utils util, Score score,
+            AsciiArt ascii) {
         this.score = score;
         this.util = util;
         this.color = util.getColor();
+        this.control = game.getControl();
         bits = new ArrayList<>();
         final int height = terminal.getHeight();
         final int width = terminal.getWidth();
@@ -29,14 +32,14 @@ class Snake {
                 Direction.values().length)];
     }
 
-    public void checkCollision(final Food food, final Terminal terminal) {
+    public boolean checkCollision(final Food food, final Terminal terminal) {
         final Bit bit = bits.getFirst();
         if ((bit.getCurrX() >= terminal.getHeight() - 1 || bit.getCurrX() <= 0) ||
                 (bit.getCurrY() >= terminal.getWidth() || bit.getCurrY() <= 0)) {
             terminal.puts(InfoCmp.Capability.cursor_visible);
-            System.out.print("Game Over");
-            System.exit(0);
+            return true;
         }
+        return false;
     }
 
     public boolean foodCheck(final Food food, final Terminal terminal) {
@@ -73,13 +76,13 @@ class Snake {
     }
 
     void setDirection(final int key) {
-        if (key == 87 || key == 119) {
+        if (control.up(key)) {
             this.direction = Direction.UP;
-        } else if (key == 65 || key == 97) {
+        } else if (control.left(key)) {
             this.direction = Direction.LEFT;
-        } else if (key == 83 || key == 115) {
+        } else if (control.down(key)) {
             this.direction = Direction.DOWN;
-        } else if (key == 68 || key == 100) {
+        } else if (control.right(key)) {
             this.direction = Direction.RIGHT;
         }
     }
