@@ -3,11 +3,11 @@ package org.zed.snakez;
 import java.util.concurrent.ThreadLocalRandom;
 import org.jline.jansi.Ansi.Color;
 
-public class Utils {
+public class Theme {
   private Color backgroundColor;
   private Color previousColor;
 
-  Utils() {
+  Theme() {
     backgroundColor = Color.BLACK;
   }
 

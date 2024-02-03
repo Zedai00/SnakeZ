@@ -6,7 +6,7 @@ class Bit {
     private int prevX;
     private int prevY;
 
-    public Bit(final int x, final int y, Utils util) {
+    public Bit(final int x, final int y, Theme theme) {
         this.currX = x;
         this.currY = y;
     }

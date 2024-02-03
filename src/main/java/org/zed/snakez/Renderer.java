@@ -12,14 +12,14 @@ class Renderer {
   private String[][] buffer;
   private Game game;
   private Food food;
-  private Utils util;
+  private Theme theme;
   private Color borderFg;
   private AsciiArt ascii;
   private Color borderBg;
   private Score score;
 
-  public Renderer(Terminal terminal, Game game, Utils util, Food food,
-      Score score, AsciiArt ascii) {
+  public Renderer(Terminal terminal, Game game, Theme theme, Food food,
+                  Score score, AsciiArt ascii) {
     this.terminal = terminal;
     this.game = game;
     this.food = food;
@@ -27,30 +27,26 @@ class Renderer {
     this.ascii = ascii;
     screen = new String[terminal.getHeight()][terminal.getWidth()];
     buffer = new String[terminal.getHeight()][terminal.getWidth()];
-    this.util = util;
+    this.theme = theme;
     initializeArrays();
-    borderBg = util.getColor();
-    borderFg = util.getColor();
+    borderBg = theme.getColor();
+    borderFg = theme.getColor();
     drawBorder(borderFg, borderBg);
-    ascii = new AsciiArt(terminal, util);
+    ascii = new AsciiArt(terminal, theme);
   }
 
-  public Color getBorderFg() {
-    return borderFg;
-  }
+  public Color getBorderFg() { return borderFg; }
 
-  public Color getBorderBg() {
-    return borderBg;
-  }
+  public Color getBorderBg() { return borderBg; }
 
   public void initializeArrays() {
     for (int i = 0; i < terminal.getHeight(); i++) {
       Arrays.fill(
           screen[i],
-          Ansi.ansi().bg(util.getBackground()).a(" ").reset().toString());
+          Ansi.ansi().bg(theme.getBackground()).a(" ").reset().toString());
       Arrays.fill(
           buffer[i],
-          Ansi.ansi().bg(util.getBackground()).a(" ").reset().toString());
+          Ansi.ansi().bg(theme.getBackground()).a(" ").reset().toString());
     }
   }
 
@@ -68,9 +64,10 @@ class Renderer {
   private void renderScore() {
     drawBorder(borderBg, borderFg);
     String[] scoreArray = String.format("Score: " + score.getScore()).split("");
-    int y = (int) (terminal.getWidth() * 0.05);
+    int y = (int)(terminal.getWidth() * 0.05);
     for (int i = 0; i < scoreArray.length; i++) {
-      String s = Ansi.ansi().bg(score.getBg()).a(scoreArray[i]).reset().toString();
+      String s =
+          Ansi.ansi().bg(score.getBg()).a(scoreArray[i]).reset().toString();
       buffer[0][y + i] = s;
     }
   }
@@ -92,11 +89,13 @@ class Renderer {
   public void drawBorder(Color bg, Color fg) {
     for (int i = 0; i < terminal.getWidth(); i++) {
       buffer[0][i] = Ansi.ansi().bg(bg).a(" ").reset().toString();
-      buffer[terminal.getHeight() - 1][i] = Ansi.ansi().bg(bg).a(" ").reset().toString();
+      buffer[terminal.getHeight() - 1][i] =
+          Ansi.ansi().bg(bg).a(" ").reset().toString();
     }
     for (int i = 0; i < terminal.getHeight(); i++) {
       buffer[i][0] = Ansi.ansi().bg(bg).a(" ").reset().toString();
-      buffer[i][terminal.getWidth() - 1] = Ansi.ansi().bg(bg).a(" ").reset().toString();
+      buffer[i][terminal.getWidth() - 1] =
+          Ansi.ansi().bg(bg).a(" ").reset().toString();
     }
   }
 
@@ -104,6 +103,13 @@ class Renderer {
     initializeArrays();
     drawBorder(borderFg, borderBg);
     renderLogo();
+    renderControls();
+    updateScreen();
+  }
+
+  public void renderPauseMenu() {
+    drawBorder(borderFg, borderBg);
+    renderPause();
     renderControls();
     updateScreen();
   }
@@ -119,32 +125,39 @@ class Renderer {
   private void renderControls() {
     String[][] controlsArray = convertTo2DArray(ascii.getControls());
     drawText(controlsArray, terminal.getHeight() * 0.4,
-        terminal.getWidth() * 0.43, ascii.getControlsBg(),
-        ascii.getControlsFg());
+             terminal.getWidth() * 0.43, ascii.getControlsBg(),
+             ascii.getControlsFg());
   }
 
   private void renderLogo() {
     String[][] logoArray = convertTo2DArray(ascii.getLogo());
     drawText(logoArray, terminal.getHeight() * 0.1, terminal.getWidth() * 0.33,
-        ascii.getLogoBg(), ascii.getLogoFg());
+             ascii.getLogoBg(), ascii.getLogoFg());
+  }
+
+  private void renderPause() {
+    String[][] pauseArray = convertTo2DArray(ascii.getPause());
+    drawText(pauseArray, terminal.getHeight() * 0.25,
+             terminal.getWidth() * 0.44, ascii.getPauseBg(),
+             ascii.getPauseFg());
   }
 
   public void renderGameOverText() {
     String[][] gameOverArray = convertTo2DArray(ascii.getGameOver());
     drawText(gameOverArray, terminal.getHeight() * 0.15,
-        terminal.getWidth() * 0.36, ascii.getGameOverBg(),
-        ascii.getGameOverFg());
+             terminal.getWidth() * 0.36, ascii.getGameOverBg(),
+             ascii.getGameOverFg());
   }
 
   private void drawText(String[][] textArray, double x, double y, Color bg,
-      Color fg) {
+                        Color fg) {
     for (int i = 0; i < textArray.length; i++) {
       for (int j = 0; j < textArray[i].length; j++) {
         String cellContent = textArray[i][j];
 
         String l = Ansi.ansi().bg(bg).fg(fg).a(cellContent).reset().toString();
 
-        buffer[(int) x][(int) y + j] = l;
+        buffer[(int)x][(int)y + j] = l;
       }
       x++;
     }
@@ -152,18 +165,20 @@ class Renderer {
 
   public void renderFood(int x, int y, Color color) {
     buffer[x][y] = Ansi.ansi()
-        .bg(util.getBackground())
-        .fg(color)
-        .a(food.getSymbol())
-        .reset()
-        .toString();
+                       .bg(theme.getBackground())
+                       .fg(color)
+                       .a(food.getSymbol())
+                       .reset()
+                       .toString();
   }
 
   private void renderSnake(Snake snake) {
     for (Bit bit : snake.bits) {
       if (isWithinBounds(bit.getCurrX(), bit.getCurrY())) {
-        buffer[bit.getPrevX()][bit.getPrevY()] = Ansi.ansi().bg(util.getBackground()).a(" ").reset().toString();
-        buffer[bit.getCurrX()][bit.getCurrY()] = Ansi.ansi().bg(snake.getColor()).a(" ").reset().toString();
+        buffer[bit.getPrevX()][bit.getPrevY()] =
+            Ansi.ansi().bg(theme.getBackground()).a(" ").reset().toString();
+        buffer[bit.getCurrX()][bit.getCurrY()] =
+            Ansi.ansi().bg(snake.getColor()).a(" ").reset().toString();
       }
     }
   }

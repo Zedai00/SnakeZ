@@ -7,23 +7,24 @@ import org.jline.terminal.Terminal;
 public class AsciiArt {
   private Color logoBg;
   private Color logoFg;
-  private Color textBg;
-  private Color textFg;
   private Color controlsBg;
   private Color controlsFg;
   private Color gameOverBg;
   private Color gameOverFg;
+  private Color pauseBg;
+  private Color pauseFg;
 
 
-  AsciiArt(Terminal terminal, Utils util)  {
-    logoBg = util.getColor();
-    logoFg = util.getColor();
-    textBg = util.getColor();
-    textFg = util.getColor();
-    controlsBg = util.getColor();
-    controlsFg = util.getColor();
-    gameOverBg = util.getColor();
-    gameOverFg = util.getColor();
+
+  AsciiArt(Terminal terminal, Theme theme)  {
+    logoBg = theme.getColor();
+    logoFg = theme.getColor();
+    controlsBg = theme.getColor();
+    controlsFg = theme.getColor();
+    gameOverBg = theme.getColor();
+    gameOverFg = theme.getColor();
+    pauseBg = theme.getColor();
+    pauseFg = theme.getColor();
   }
   
   private String Logo = """
@@ -57,17 +58,16 @@ private String Controls = """
 ▐                                            ▌
 ▐▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▌
 """;
-    
+  private String Pause = """
+┌──────────────────┐
+│╔═╗╔═╗╦ ╦╔═╗╔═╗╔╦╗│
+│╠═╝╠═╣║ ║╚═╗║╣  ║║│
+│╩  ╩ ╩╚═╝╚═╝╚═╝═╩╝│
+└──────────────────┘
+""";
+
   public String getLogo() {
       return Logo;
-  }
-
-  public String getControls() {
-      return Controls;
-  }
-
-  public String getGameOver() {
-      return GameOver;
   }
 
   public Color getLogoBg() {
@@ -78,12 +78,8 @@ private String Controls = """
     return logoFg;
   }
 
-  public Color getTextBg() {
-    return textBg;
-  }
-
-  public Color getTextFg() {
-    return textFg;
+  public String getControls() {
+      return Controls;
   }
 
   public Color getControlsBg() {
@@ -93,13 +89,28 @@ private String Controls = """
   public Color getControlsFg() {
     return controlsFg;
   }
-  
+
+   public String getGameOver() {
+      return GameOver;
+  }
+
   public Color getGameOverBg() {
     return gameOverBg;
   }
-  
+
   public Color getGameOverFg() {
     return gameOverFg;
   }
+  
+   public String getPause() {
+    return Pause;
+  }
 
+  public Color getPauseBg() {
+    return pauseBg;
+  }
+
+  public Color getPauseFg() {
+    return pauseFg;
+  }
 }

@@ -1,6 +1,5 @@
 package org.zed.snakez;
 
-import java.io.IOException;
 import org.jline.terminal.Terminal;
 import org.jline.utils.InfoCmp.Capability;
 
@@ -106,8 +105,8 @@ class Game {
         } catch (final InterruptedException e) {
           e.printStackTrace();
         }
-      } else {
-        renderer.renderStartMenu();
+      } else if (getState() == State.PAUSE) {
+        renderer.renderPauseMenu();
         renderer.drawBorder(renderer.getBorderFg(), renderer.getBorderBg());
         c = 0;
       }
@@ -137,12 +136,12 @@ class Game {
   private void initialize() {
     terminal.enterRawMode();
     terminal.puts(Capability.cursor_invisible);
-    Utils util = new Utils();
-    food = new Food(terminal, util);
-    score = new Score(util);
-    ascii = new AsciiArt(terminal, util);
-    renderer = new Renderer(terminal, this, util, food, score, ascii);
-    snake = new Snake(terminal, this, util, score, ascii);
+    Theme theme = new Theme();
+    food = new Food(terminal, theme);
+    score = new Score(theme);
+    ascii = new AsciiArt(terminal, theme);
+    renderer = new Renderer(terminal, this, theme, food, score, ascii);
+    snake = new Snake(terminal, this, theme, score, ascii);
   }
 
   public void handleInput(int key) {
