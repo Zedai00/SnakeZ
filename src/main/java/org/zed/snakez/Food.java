@@ -1,5 +1,6 @@
 package org.zed.snakez;
 
+import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import org.jline.jansi.Ansi.Color;
 import org.jline.terminal.Terminal;
@@ -7,7 +8,7 @@ import org.jline.terminal.Terminal;
 class Food {
     private int x;
     private int y;
-    private Color color;
+    private ArrayList<Color> color;
     private Theme theme;
     private String symbol;
 
@@ -15,7 +16,7 @@ class Food {
         this.symbol = symbol;
     }
 
-    public Color getColor() {
+    public ArrayList<Color> getColor() {
         return color;
     }
 
@@ -30,7 +31,7 @@ class Food {
     public void spawn(final int maxX, final int maxY) {
         x = ThreadLocalRandom.current().nextInt(1, maxX - 1);
         y = ThreadLocalRandom.current().nextInt(1, maxY - 1);
-        color = theme.getColor();
+        color = theme.getTheme();
     }
 
     public int getX() {

@@ -10,24 +10,22 @@ class Snake {
     ArrayList<Bit> bits;
     private Direction direction;
     private Score score;
-    private Theme theme;
-    private Color color;
+    private ArrayList<Color> theme;
     private Control control;
 
-    public Color getColor() {
-        return color;
+    public ArrayList<Color> getTheme() {
+        return theme;
     }
 
     public Snake(final Terminal terminal, Game game, Theme theme, Score score,
             AsciiArt ascii) {
         this.score = score;
-        this.theme = theme;
-        this.color = theme.getColor();
+        this.theme = theme.getTheme();
         this.control = game.getControl();
         bits = new ArrayList<>();
         final int height = terminal.getHeight();
         final int width = terminal.getWidth();
-        bits.add(new Bit(height / 2, width / 2, theme));
+        bits.add(new Bit(height / 2, width / 2));
         direction = Direction.values()[ThreadLocalRandom.current().nextInt(
                 Direction.values().length)];
     }
@@ -92,6 +90,6 @@ class Snake {
     }
 
     private void addBit() {
-        bits.add(new Bit(bits.getLast().getPrevX(), bits.getLast().getPrevY(), theme));
+        bits.add(new Bit(bits.getLast().getPrevX(), bits.getLast().getPrevY()));
     }
 }

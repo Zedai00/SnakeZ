@@ -1,30 +1,23 @@
 package org.zed.snakez;
 
 
+import java.util.ArrayList;
 import org.jline.jansi.Ansi.Color;
 import org.jline.terminal.Terminal;
 
 public class AsciiArt {
-  private Color logoBg;
-  private Color logoFg;
-  private Color controlsBg;
-  private Color controlsFg;
-  private Color gameOverBg;
-  private Color gameOverFg;
-  private Color pauseBg;
-  private Color pauseFg;
+  private ArrayList<Color> logoTheme;
+  private ArrayList<Color> controlsTheme;
+  private ArrayList<Color> gameOverTheme;
+  private ArrayList<Color> pauseTheme;
 
 
 
   AsciiArt(Terminal terminal, Theme theme)  {
-    logoBg = theme.getColor();
-    logoFg = theme.getColor();
-    controlsBg = theme.getColor();
-    controlsFg = theme.getColor();
-    gameOverBg = theme.getColor();
-    gameOverFg = theme.getColor();
-    pauseBg = theme.getColor();
-    pauseFg = theme.getColor();
+    logoTheme = theme.getTheme();
+    controlsTheme = theme.getTheme();
+    gameOverTheme = theme.getTheme();
+    pauseTheme = theme.getTheme();
   }
   
   private String Logo = """
@@ -70,47 +63,32 @@ private String Controls = """
       return Logo;
   }
 
-  public Color getLogoBg() {
-    return logoBg;
-  }
-
-  public Color getLogoFg() {
-    return logoFg;
-  }
-
   public String getControls() {
       return Controls;
   }
 
-  public Color getControlsBg() {
-    return controlsBg;
-  }
-
-  public Color getControlsFg() {
-    return controlsFg;
-  }
-
    public String getGameOver() {
       return GameOver;
-  }
-
-  public Color getGameOverBg() {
-    return gameOverBg;
-  }
-
-  public Color getGameOverFg() {
-    return gameOverFg;
   }
   
    public String getPause() {
     return Pause;
   }
 
-  public Color getPauseBg() {
-    return pauseBg;
+  public ArrayList<Color> getLogoTheme() {
+    return logoTheme;
   }
 
-  public Color getPauseFg() {
-    return pauseFg;
+  public ArrayList<Color> getControlsTheme() {
+    return controlsTheme;
   }
+
+  public ArrayList<Color> getGameOverTheme() {
+    return gameOverTheme;
+  }
+
+  public ArrayList<Color> getPauseTheme() {
+    return pauseTheme;
+  }
+
 }

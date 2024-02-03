@@ -107,7 +107,7 @@ class Game {
         }
       } else if (getState() == State.PAUSE) {
         renderer.renderPauseMenu();
-        renderer.drawBorder(renderer.getBorderFg(), renderer.getBorderBg());
+        renderer.drawBorder(renderer.getBorderTheme());
         c = 0;
       }
     }
