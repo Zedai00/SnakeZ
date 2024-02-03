@@ -2,24 +2,41 @@ package org.zed.snakez;
 
 import java.io.IOException;
 import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp.Capability;
-import org.jline.utils.NonBlocking;
-import org.jline.utils.NonBlockingReader;
-import org.zed.snakez.State.States;
 
 class Game {
   private Terminal terminal;
   private Renderer renderer;
-
   private Snake snake;
   private Food food;
   private Score score;
   private int speed = 90;
   private State state;
+  private AsciiArt ascii;
+  private Control control;
+
+  Game(State state, Terminal terminal) {
+    try {
+      this.terminal = terminal;
+      terminal.puts(Capability.clear_screen);
+      terminal.enterRawMode();
+      this.state = state;
+      this.control = new Control();
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
+  }
 
   public Renderer getRenderer() {
     return renderer;
+  }
+
+  public State getState() {
+    return this.state;
+  }
+
+  public void setState(State state) {
+    this.state = state;
   }
 
   public int getSpeed() {
@@ -30,22 +47,6 @@ class Game {
     this.speed++;
   }
 
-  Game(State state) {
-    try {
-      terminal = TerminalBuilder.builder().system(true).dumb(false).build();
-      terminal.puts(Capability.clear_screen);
-      terminal.enterRawMode();
-      Utils util = new Utils();
-      this.state = state;
-      food = new Food(terminal, util);
-      score = new Score(util);
-      renderer = new Renderer(terminal, this, util, food, score);
-      snake = new Snake(terminal, this, util, score);
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   public Snake getSnake() {
     return this.snake;
   }
@@ -54,24 +55,51 @@ class Game {
     return this.terminal;
   }
 
+  public Food getFood() {
+    return food;
+  }
+
+  public Score getScore() {
+    return score;
+  }
+
+  public AsciiArt getAscii() {
+    return ascii;
+  }
+
+  public Control getControl() {
+    return control;
+  }
+
   public void start() {
     initialize();
     renderer.renderStartMenu();
-    while (state.getState() != States.PLAY)
-      continue;
+    if (getState() != State.PLAY) {
+      try {
+        synchronized (this) {
+          wait();
+          setState(State.PLAY);
+        }
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
     runLoop();
   }
 
   private void runLoop() {
     int c = 0;
     while (true) {
-      if (state.getState() == States.PLAY) {
+      if (getState() == State.PLAY) {
         if (c == 0) {
           terminal.puts(Capability.clear_screen);
           c = 1;
         }
         snake.move();
-        snake.checkCollision(food, terminal);
+        if (snake.checkCollision(food, terminal)) {
+          GameOver();
+        }
         renderer.renderGame(snake, food);
         try {
           Thread.sleep(this.getSpeed());
@@ -86,22 +114,44 @@ class Game {
     }
   }
 
+  public void GameOver() {
+    renderer.renderGameOver();
+    setState(State.GAMEOVER);
+    synchronized (this) {
+      try {
+        wait();
+        if (getState() == State.FIRST) {
+          initialize();
+          setState(State.PLAY);
+          notify();
+
+        } else if (getState() == State.QUIT) {
+          quit();
+        }
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
   private void initialize() {
     terminal.enterRawMode();
     terminal.puts(Capability.cursor_invisible);
+    Utils util = new Utils();
+    food = new Food(terminal, util);
+    score = new Score(util);
+    ascii = new AsciiArt(terminal, util);
+    renderer = new Renderer(terminal, this, util, food, score, ascii);
+    snake = new Snake(terminal, this, util, score, ascii);
   }
 
   public void handleInput(int key) {
-    if (key == 112 || key == 80) {
-      if (state.getState() == States.PAUSE) {
-        state.setState(States.PLAY);
-        terminal.puts(Capability.clear_screen);
-      } else {
-        state.setState(States.PAUSE);
-        terminal.puts(Capability.clear_screen);
-      }
-    } else {
-      snake.setDirection(key);
-    }
+    snake.setDirection(key);
+  }
+
+  public void quit() {
+    System.out.print("\u001B[H\u001B[2J");
+    System.out.print("\u001B[H\u001B[2J");
+    System.exit(0);
   }
 }

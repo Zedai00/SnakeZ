@@ -14,18 +14,17 @@ class Renderer {
   private Food food;
   private Utils util;
   private Color borderFg;
-
+  private AsciiArt ascii;
   private Color borderBg;
-
   private Score score;
-  private AsciiArt startMenu;
 
   public Renderer(Terminal terminal, Game game, Utils util, Food food,
-      Score score) {
+      Score score, AsciiArt ascii) {
     this.terminal = terminal;
     this.game = game;
     this.food = food;
     this.score = score;
+    this.ascii = ascii;
     screen = new String[terminal.getHeight()][terminal.getWidth()];
     buffer = new String[terminal.getHeight()][terminal.getWidth()];
     this.util = util;
@@ -33,7 +32,7 @@ class Renderer {
     borderBg = util.getColor();
     borderFg = util.getColor();
     drawBorder(borderFg, borderBg);
-    startMenu = new AsciiArt(terminal, util);
+    ascii = new AsciiArt(terminal, util);
   }
 
   public Color getBorderFg() {
@@ -44,7 +43,7 @@ class Renderer {
     return borderBg;
   }
 
-  private void initializeArrays() {
+  public void initializeArrays() {
     for (int i = 0; i < terminal.getHeight(); i++) {
       Arrays.fill(
           screen[i],
@@ -67,18 +66,16 @@ class Renderer {
   }
 
   private void renderScore() {
-    String s = Ansi.ansi()
-        .bg(score.getBg())
-        .a("Score: " + score.getScore())
-        .reset()
-        .toString();
-    terminal.puts(Capability.cursor_address, (int) terminal.getHeight() % 1,
-        (int) terminal.getWidth() % 10);
-    terminal.flush();
-    System.out.print(s);
+    drawBorder(borderBg, borderFg);
+    String[] scoreArray = String.format("Score: " + score.getScore()).split("");
+    int y = (int) (terminal.getWidth() * 0.05);
+    for (int i = 0; i < scoreArray.length; i++) {
+      String s = Ansi.ansi().bg(score.getBg()).a(scoreArray[i]).reset().toString();
+      buffer[0][y + i] = s;
+    }
   }
 
-  private void updateScreen() {
+  public void updateScreen() {
     for (int i = 0; i < terminal.getHeight(); i++) {
       for (int j = 0; j < terminal.getWidth(); j++) {
         if (buffer[i][j] != screen[i][j]) {
@@ -104,7 +101,53 @@ class Renderer {
   }
 
   public void renderStartMenu() {
-    startMenu.drawMenu();
+    initializeArrays();
+    drawBorder(borderFg, borderBg);
+    renderLogo();
+    renderControls();
+    updateScreen();
+  }
+
+  public void renderGameOver() {
+    initializeArrays();
+    drawBorder(borderFg, borderBg);
+    renderGameOverText();
+    renderControls();
+    updateScreen();
+  }
+
+  private void renderControls() {
+    String[][] controlsArray = convertTo2DArray(ascii.getControls());
+    drawText(controlsArray, terminal.getHeight() * 0.4,
+        terminal.getWidth() * 0.43, ascii.getControlsBg(),
+        ascii.getControlsFg());
+  }
+
+  private void renderLogo() {
+    String[][] logoArray = convertTo2DArray(ascii.getLogo());
+    drawText(logoArray, terminal.getHeight() * 0.1, terminal.getWidth() * 0.33,
+        ascii.getLogoBg(), ascii.getLogoFg());
+  }
+
+  public void renderGameOverText() {
+    String[][] gameOverArray = convertTo2DArray(ascii.getGameOver());
+    drawText(gameOverArray, terminal.getHeight() * 0.15,
+        terminal.getWidth() * 0.36, ascii.getGameOverBg(),
+        ascii.getGameOverFg());
+  }
+
+  private void drawText(String[][] textArray, double x, double y, Color bg,
+      Color fg) {
+    for (int i = 0; i < textArray.length; i++) {
+      for (int j = 0; j < textArray[i].length; j++) {
+        String cellContent = textArray[i][j];
+
+        String l = Ansi.ansi().bg(bg).fg(fg).a(cellContent).reset().toString();
+
+        buffer[(int) x][(int) y + j] = l;
+      }
+      x++;
+    }
   }
 
   public void renderFood(int x, int y, Color color) {
@@ -128,5 +171,14 @@ class Renderer {
   private boolean isWithinBounds(int x, int y) {
     return x > 0 && x < terminal.getHeight() - 1 && y > 0 &&
         y < terminal.getWidth() - 1;
+  }
+
+  private String[][] convertTo2DArray(String text) {
+    String[] rows = text.split("\n");
+    String[][] logo2DArray = new String[rows.length][];
+    for (int i = 0; i < rows.length; i++) {
+      logo2DArray[i] = rows[i].split("");
+    }
+    return logo2DArray;
   }
 }
