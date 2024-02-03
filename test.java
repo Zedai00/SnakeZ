@@ -1,16 +1,30 @@
-package org.zed.snakez;
-
-import org.jline.jansi.Ansi;
-import org.jline.jansi.Ansi.Color;
-import org.jline.terminal.Terminal;
-import org.jline.terminal.TerminalBuilder;
-import org.jline.utils.NonBlockingReader;
-
-public class test {
+public class ColoredConsoleBlurEffect {
   public static void main(String[] args) {
-    for (Color color : Color.values()) {
-      String l = Ansi.ansi().bg(color).a(color).toString();
-      System.out.println(l);
+    String text = "Hello, Blur!";
+    int blurIntensity = 3;
+
+    for (int i = 0; i < blurIntensity; i++) {
+      for (int j = 0; j < text.length(); j++) {
+        char currentChar = text.charAt(j);
+        char blurredChar = blurCharacter(currentChar, i);
+
+        // Print blurred character with color
+        printColored(blurredChar,
+                     i % 7 + 31); // Modulo 7 to get a variety of colors,
+                                  // starting from ANSI color code 31
+      }
+      System.out.println();
     }
+  }
+
+  private static void printColored(char character, int colorCode) {
+    // ANSI escape code for setting text color
+    System.out.print("\u001B[" + colorCode + "m" + character + "\u001B[0m");
+  }
+
+  private static char blurCharacter(char original, int intensity) {
+    // Adjust the ASCII value of the character based on the intensity
+    int blurredAscii = (int)original + intensity;
+    return (char)blurredAscii;
   }
 }

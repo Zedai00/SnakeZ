@@ -14,9 +14,9 @@ public class Score {
     this.score++;
   }
 
-  Score(Utils util) {
+  Score(Theme theme) {
     this.score = 0;
-    bg = util.getColor();
+    bg = theme.getColor();
   }
 
   public Color getBg() {

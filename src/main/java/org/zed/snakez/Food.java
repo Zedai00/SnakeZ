@@ -8,7 +8,7 @@ class Food {
     private int x;
     private int y;
     private Color color;
-    private Utils util;
+    private Theme theme;
     private String symbol;
 
     public void setSymbol(String symbol) {
@@ -21,8 +21,8 @@ class Food {
 
     private String[] symbols = { "⬤", "⬣", "⬢", "Ｏ", "Ꙩ", "Ꙫ" };
 
-    public Food(final Terminal terminal, Utils util) {
-        this.util = util;
+    public Food(final Terminal terminal, Theme theme) {
+        this.theme = theme;
         spawn(terminal.getHeight(), terminal.getWidth());
         this.symbol = getRandomSymbol();
     }
@@ -30,7 +30,7 @@ class Food {
     public void spawn(final int maxX, final int maxY) {
         x = ThreadLocalRandom.current().nextInt(1, maxX - 1);
         y = ThreadLocalRandom.current().nextInt(1, maxY - 1);
-        color = util.getColor();
+        color = theme.getColor();
     }
 
     public int getX() {
